@@ -11,6 +11,11 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
+const (
+	ConnTimeout = time.Duration(60) * time.Second
+	WaiTimeout  = 3 * time.Second
+)
+
 func ConnectByMQTT(config Config, opts *mqtt.ClientOptions) mqtt.Client {
 	if nil == opts {
 		opts = mqtt.NewClientOptions()
@@ -19,9 +24,10 @@ func ConnectByMQTT(config Config, opts *mqtt.ClientOptions) mqtt.Client {
 	opts.AddBroker(broker)
 	opts.SetUsername(config.Username)
 	opts.SetPassword(config.Password)
+	opts.SetConnectTimeout(ConnTimeout)
 	client := mqtt.NewClient(opts)
 	token := client.Connect()
-	for !token.WaitTimeout(3 * time.Second) {
+	for !token.WaitTimeout(WaiTimeout) && token.Wait() && token.Error() != nil {
 	}
 	if err := token.Error(); err != nil {
 		log.Fatal(err)
@@ -45,6 +51,7 @@ func ConnectByMQTTS(config Config, opts *mqtt.ClientOptions) mqtt.Client {
 	if nil == opts {
 		opts = mqtt.NewClientOptions()
 	}
+	opts.SetConnectTimeout(ConnTimeout)
 	broker := fmt.Sprintf("ssl://%s:%d", config.Host, config.Port)
 	println(broker)
 	opts.AddBroker(broker)
@@ -53,7 +60,7 @@ func ConnectByMQTTS(config Config, opts *mqtt.ClientOptions) mqtt.Client {
 	opts.SetTLSConfig(&tlsConfig)
 	client := mqtt.NewClient(opts)
 	token := client.Connect()
-	for !token.WaitTimeout(3 * time.Second) {
+	for !token.WaitTimeout(WaiTimeout) && token.Wait() && token.Error() != nil {
 	}
 	if err := token.Error(); err != nil {
 		log.Fatal(err)
@@ -65,13 +72,14 @@ func ConnectByWS(config Config, opts *mqtt.ClientOptions) mqtt.Client {
 	if nil == opts {
 		opts = mqtt.NewClientOptions()
 	}
+	opts.SetConnectTimeout(ConnTimeout)
 	broker := fmt.Sprintf("ws://%s:%d/mqtt", config.Host, config.Port)
 	opts.AddBroker(broker)
 	opts.SetUsername(config.Username)
 	opts.SetPassword(config.Password)
 	client := mqtt.NewClient(opts)
 	token := client.Connect()
-	for !token.WaitTimeout(3 * time.Second) {
+	for !token.WaitTimeout(WaiTimeout) && token.Wait() && token.Error() != nil {
 	}
 	if err := token.Error(); err != nil {
 		log.Fatal(err)
@@ -95,6 +103,7 @@ func ConnectByWSS(config Config, opts *mqtt.ClientOptions) mqtt.Client {
 	if nil == opts {
 		opts = mqtt.NewClientOptions()
 	}
+	opts.SetConnectTimeout(ConnTimeout)
 	broker := fmt.Sprintf("wss://%s:%d/mqtt", config.Host, config.Port)
 	opts.AddBroker(broker)
 	opts.SetUsername(config.Username)
@@ -102,7 +111,7 @@ func ConnectByWSS(config Config, opts *mqtt.ClientOptions) mqtt.Client {
 	opts.SetTLSConfig(&tlsConfig)
 	client := mqtt.NewClient(opts)
 	token := client.Connect()
-	for !token.WaitTimeout(3 * time.Second) {
+	for !token.WaitTimeout(WaiTimeout) && token.Wait() && token.Error() != nil {
 	}
 	if err := token.Error(); err != nil {
 		log.Fatal(err)

@@ -31,11 +31,28 @@ func NewTlsConfig(caPem, clientCrtPem, clientKeyPem string) *tls.Config {
 	}
 }
 
+// 如果不设置客户端证书，可以如下设置：
+func NewTlsConfigs4NoClient(caPem string) *tls.Config {
+	certpool := x509.NewCertPool()
+	ca, err := ioutil.ReadFile(caPem)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	certpool.AppendCertsFromPEM(ca)
+	return &tls.Config{
+		RootCAs:            certpool,
+		ClientAuth:         tls.NoClientCert,
+		ClientCAs:          nil,
+		InsecureSkipVerify: true,
+	}
+}
+
 type SubData struct {
 	SubTopic string
 	Callback mqtt.MessageHandler
 }
 
+// https://blog.csdn.net/qq_32447301/article/details/114277530
 func Sub(client mqtt.Client, a ...SubData) {
 	var wg sync.WaitGroup
 	for _, x := range a {
